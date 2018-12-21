@@ -2,6 +2,7 @@ language: python
 cache:
   directories:
       - $HOME/.cache/pip
+      - $HOME/.nose_notify
 python:
   - "3.5"
 before_install:
@@ -24,6 +25,9 @@ install:
   - wget -nv "http://sorger.med.harvard.edu/data/bgyori/bioagents/drug_targets.db" -O bioagents/resources/drug_targets.db
   # Install utilities for running tests
   - pip install coverage
+  # Clone the nose-notify repo and update pythonpath.
+  - git clone https://github.com/pagreene/nose-notify.git $HOME/.nose_notify
+  - export PYTHONPATH=$PYTHONPATH:$HOME/.nose_notify
 before_script:
   # Enable plotting on fake display
   - "export DISPLAY=:99.0"
@@ -43,4 +47,5 @@ script:
   - if [[ $RUN_SLOW != "true" ]]; then
       export NOSEATTR="!slow,$NOSEATTR";
     fi
-  - nosetests bioagents/tests -a $NOSEATTR -v --with-coverage --cover-inclusive --cover-package=bioagents
+  - python -m nose_notify bioagents/tests -a $NOSEATTR -v --with-coverage --cover-inclusive --cover-package=bioagents
+    --slack_hook $SLACK_NOTIFY_HOOK
